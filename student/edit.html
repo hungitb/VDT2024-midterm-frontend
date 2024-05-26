@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+
+<head>
+    <title>Sửa thông tin sinh viên</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- jquery -->
+    <script src="../lib/jquery.min.js"></script>
+    <!-- bootstrap 5 -->
+    <link rel="stylesheet" href="../lib/bootstrap.min.css">
+</head>
+
+<body style="background-color: #E7E9EB;">
+    <div class="container" style="display: none;">
+        <h1 class="mb-3 text-center" style="margin-top: 1.5rem;">Sửa thông tin</h1>
+        <form>
+            <div class="mb-3 form-row row">
+                <div class="form-group col-md-6">
+                    <label for="inputName">Họ tên</label>
+                    <input type="text" class="form-control" id="inputName" name="name">
+                </div>
+                <div class="form-group col-md-6">
+                    <label for="inputGender">Giới tính</label>
+                    <select id="inputGender" class="form-select" name="gender">
+                        <option value="Nam" selected>Nam</option>
+                        <option value="Nữ">Nữ</option>
+                    </select>
+                </div>
+            </div>
+            <div class="mb-3 form-group">
+                <label for="inputEmail">Email</label>
+                <input type="text" class="form-control" id="inputEmail" placeholder="" name="email">
+            </div>
+            <div class="mb-3 form-group">
+                <label for="inputSchool">Tên trường</label>
+                <input type="text" class="form-control" id="inputSchool" placeholder="" name="school">
+            </div>
+            <div class="mb-3 form-row row">
+                <div class="form-group col-md-4">
+                    <label for="inputBirthday">Năm sinh</label>
+                    <input type="text" class="form-control" id="inputBirthday" placeholder="" name="birthday">
+                </div>
+                <div class="form-group col-md-4">
+                    <label for="inputPhoneNumber">Số điện thoại</label>
+                    <input type="password" class="form-control" id="inputPhoneNumber" placeholder="" name="phoneNumber">
+                </div>
+                <div class="form-group col-md-4">
+                    <label for="inputCountry">Quốc gia</label>
+                    <input type="text" class="form-control" id="inputCountry" placeholder="" name="country">
+                </div>
+            </div>
+            <div class="invalid-feedback fs-2 mb-3"></div>
+            <button type="button" class="btn btn-primary" id="save">Lưu lại</button>
+        </form>
+    </div>
+
+    <script>
+        const fetchRestfulAPI = (url, {method = 'GET', data = {}} = {}) => {
+            const BASE_API_URL = `${window.location.protocol}//${window.location.host}`
+            url = BASE_API_URL + url + ((method == 'GET' && Object.keys(data) != 0) ? '?' + Object.keys(data).map(k => `${k}=${data[k]}`).join('&') : '')
+            return fetch(url, {
+                method,
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: method != 'GET' ? JSON.stringify(data || {}) : undefined
+            }).then(res => {
+                if (res.ok) return res.json()
+                return new Promise((_, reject) => {
+                    res.json().then(res => {
+                        reject(res.message || 'Lỗi không xác định!')
+                    })
+                })
+            })
+        }
+
+        const id = window.location.search.replace('?', '').split('&').find(pair => pair.startsWith('id=')).split('=')[1]
+
+        fetchRestfulAPI('/api/student', { data: { id } }).then(student => {
+            $('.container').show()
+            for (let key in student) {
+                $(`form *[name="${key}"]`).val(student[key])
+            }
+        })
+
+        $('#save').click(() => {
+            $('.invalid-feedback').hide()
+            let data = { id }
+            $('form input').each((_, elem) => {
+                data[elem.name] = elem.value
+            })
+            $('form select').each((_, elem) => {
+                data[elem.name] = elem.value
+            })
+            
+            fetchRestfulAPI('/api/student', {
+                method: 'PUT',
+                data
+            }).then((x) => {
+                window.location.href = '..'
+            }).catch((err) => {
+                $('.invalid-feedback').show().html(err)
+            })
+        })
+    </script>
+</body>
+
+</html>
