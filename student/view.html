@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+
+<head>
+    <title>Xem thông tin sinh viên</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- jquery -->
+    <script src="../lib/jquery.min.js"></script>
+    <!-- bootstrap 5 -->
+    <link rel="stylesheet" href="../lib/bootstrap.min.css">
+</head>
+
+<body style="background-color: #E7E9EB;">
+    <div class="container" style="display: none;">
+        <section class="w-100 px-4 py-5">
+            <div class="row d-flex justify-content-center">
+                <div class="col col-md-9 col-lg-7 col-xl-6">
+                    <div class="card" style="border-radius: 15px;">
+                        <div class="card-body p-4">
+                            <div class="d-flex">
+                                <div class="flex-grow-1 ms-3">
+                                    <h5 class="mb-1" name="name"></h5>
+                                    <p class="mb-2 pb-1" name="school"></p>
+                                    <p class="mb-2 pb-1" name="email"></p>
+                                    <div class="d-flex justify-content-start rounded-3 p-2 mb-2 bg-body-tertiary">
+                                        <div>
+                                            <p class="small text-muted mb-1">Giới tính</p>
+                                            <p class="mb-0" name="gender"></p>
+                                        </div>
+                                        <div class="px-3">
+                                            <p class="small text-muted mb-1">Năm sinh</p>
+                                            <p class="mb-0" name="birthday"></p>
+                                        </div>
+                                        <div>
+                                            <p class="small text-muted mb-1">Số điện thoại</p>
+                                            <p class="mb-0" name="phoneNumber"></p>
+                                        </div>
+                                        <div class="px-3">
+                                            <p class="small text-muted mb-1">Quốc gia</p>
+                                            <p class="mb-0" name="country"></p>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex pt-1">
+                                        <a class="btn btn-outline-primary me-1 flex-grow-1" id="edit">Chỉnh sửa thông tin</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        const fetchRestfulAPI = (url, { method = 'GET', data = {} } = {}) => {
+            const BASE_API_URL = `${window.location.protocol}//${window.location.host}`
+            url = BASE_API_URL + url + ((method == 'GET' && Object.keys(data) != 0) ? '?' + Object.keys(data).map(k => `${k}=${data[k]}`).join('&') : '')
+            return fetch(url, {
+                method,
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: method != 'GET' ? JSON.stringify(data || {}) : undefined
+            }).then(res => {
+                if (res.ok) return res.json()
+                return new Promise((_, reject) => {
+                    res.json().then(res => {
+                        reject(res.message || 'Lỗi không xác định!')
+                    })
+                })
+            })
+        }
+
+        const id = window.location.search.replace('?', '').split('&').find(pair => pair.startsWith('id=')).split('=')[1]
+        $('#edit').attr('href', './edit.html?id=' + id)
+
+        fetchRestfulAPI('/api/student', { data: { id } }).then(student => {
+            $('.container').show()
+            for (let key in student) {
+                $(`.container *[name="${key}"]`).html(student[key] || '-')
+            }
+        }).catch(err => console.log(err))
+    </script>
+</body>
+
+</html>
