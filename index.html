@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+
+<head>
+    <title>Quản lý sinh viên</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- jquery -->
+    <script src="./lib/jquery.min.js"></script>
+    <!-- bootstrap 5 -->
+    <link rel="stylesheet" href="./lib/bootstrap.min.css">
+</head>
+
+<body style="background-color: #E7E9EB;">
+    <div class="container">
+        <h1 class="text-center">Danh sách sinh viên VDT2024</h1>
+        <button type="button" class="btn btn-success float-end mb-3" id="add-student">Thêm sinh viên</button>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Họ và tên</th>
+                    <th>Giới tính</th>
+                    <th>Trường đang theo học</th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody id="table-rows"></tbody>
+        </table>
+    </div>
+
+    <script>
+        const fetchRestfulAPI = (url, {method = 'GET', data = {}} = {}) => {
+            const BASE_API_URL = `${window.location.protocol}//${window.location.host}`
+            url = BASE_API_URL + url + ((method == 'GET' && Object.keys(data) != 0) ? '?' + Object.keys(data).map(k => `${k}=${data[k]}`).join('&') : '')
+            return fetch(url, {
+                method,
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: method != 'GET' ? JSON.stringify(data || {}) : undefined
+            }).then(res => {
+                if (res.ok) return res.json()
+                return new Promise((_, reject) => {
+                    res.json().then(res => {
+                        reject(res.message || 'Lỗi không xác định!')
+                    })
+                })
+            })
+        }
+
+        $('#add-student').click(() => {
+            window.location.href = './student/add.html'
+        })
+
+        function refreshList() {
+            $('#table-rows').html('')
+            fetchRestfulAPI('/api/students').then(students => {
+                students.forEach(({id, name, gender, school}) => {
+                    let $row = $(`<tr>
+                        <td>${name}</td>
+                        <td>${gender}</td>
+                        <td>${school}</td>
+                        <td><a class="text-success" href="./student/view.html?id=${id}">Xem chi tiết</a></td>
+                        <td><a class="text-primary" href="./student/edit.html?id=${id}">Sửa thông tin</a></td>
+                        <td><a class="text-danger delete" style="cursor: pointer;">Xóa sinh viên</a></td>
+                    </tr>`)
+                    $('#table-rows').append($row)
+
+                    $row.find('.delete').click((e) => {
+                        e.preventDefault()
+                        fetchRestfulAPI('/api/student', {
+                            method: 'DELETE',
+                            data: { id }
+                        }).then(() => {
+                            $row.remove()
+                        }).catch(err => {
+                            console.log(err)
+                        })
+                    })
+                })
+            })
+        }
+        refreshList()
+    </script>
+</body>
+
+</html>
