@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.nginxPrometheusExporter.service.name }}
+  labels: {{ .Values.nginxPrometheusExporter.service.selectorLabels | nindent 4 }}
+spec:
+  selector: {{ .Values.nginxPrometheusExporter.service.selectorLabels | nindent 4 }}
+  ports:
+  - name: metrics
+    port: 9113

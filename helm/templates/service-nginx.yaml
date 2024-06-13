@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.frontend.service.name }}
+  labels: {{ .Values.frontend.service.selectorLabels | nindent 4 }}
+spec:
+  type: NodePort
+  selector: {{ .Values.frontend.service.selectorLabels | nindent 4 }}
+  ports:
+  - name: https
+    protocol: TCP
+    port: 22222
+    nodePort: {{ .Values.frontend.service.nodePort }}
+  - name: metrics
+    port: 8080

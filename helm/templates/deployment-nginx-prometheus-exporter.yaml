@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-prometheus-exporter-deployment
+spec:
+  replicas: {{ .Values.nginxPrometheusExporter.replicaCount }}
+  selector:
+    matchLabels: {{ .Values.nginxPrometheusExporter.service.selectorLabels | nindent 6 }}
+  template:
+    metadata:
+      labels: {{ .Values.nginxPrometheusExporter.service.selectorLabels | nindent 8 }}
+    spec:
+      containers:
+      - name: nginx-frontend-prometheus-exporter
+        image: {{ .Values.nginxPrometheusExporter.image }}
+        ports:
+        - name: metrics
+          containerPort: 9113
+        env:
+        - name: NGINX_SCRAPE_URI
+          value: http://{{ .Values.frontend.service.name }}:8080/stub_status
+        args:
+        - "--nginx.scrape-uri=$(NGINX_SCRAPE_URI)"
